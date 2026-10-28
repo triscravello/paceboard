@@ -1,0 +1,34 @@
+# dependencies
+/node_modules
+
+# next.js
+/.next/
+/out/
+next-env.d.ts
+
+# build and test output
+/build
+/coverage
+*.tsbuildinfo
+
+# environment files and secrets (keep the example template)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# local Claude Code settings
+.claude/settings.local.json
+
+# logs
+*.log
+npm-debug.log*
+
+# os and editor files
+.DS_Store
+.idea/
+.vscode/
+
+# vercel
+.vercel

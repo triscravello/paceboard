@@ -1,0 +1,18 @@
+services:
+  postgres:
+    image: postgres:18.6-bookworm
+    environment:
+      POSTGRES_USER: paceboard
+      POSTGRES_PASSWORD: paceboard
+      POSTGRES_DB: paceboard
+    ports: ["5432:5432"]
+    volumes:
+      - paceboard_postgres:/var/lib/postgresql
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U paceboard -d paceboard"]
+      interval: 2s
+      timeout: 5s
+      retries: 15
+volumes:
+  paceboard_postgres:

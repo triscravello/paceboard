@@ -1,0 +1,97 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ActivityType {
+  RUN
+  RIDE
+  WALK
+}
+
+enum ActivityVisibility {
+  PRIVATE
+  PUBLIC
+}
+
+model User {
+  id           String     @id @default(uuid())
+  name         String
+  email        String     @unique
+  passwordHash String
+  sessions     Session[]
+  activities   Activity[]
+  kudos        Kudos[]
+  privacyZones PrivacyZone[]
+  createdAt    DateTime   @default(now())
+}
+
+model Session {
+  id        String   @id
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Activity {
+  id                      String       @id @default(uuid())
+  ownerId                 String
+  type                    ActivityType
+  title                   String
+  distanceHundredthsMiles Int
+  elapsedSeconds          Int
+  elevationGainFeet       Int
+  recordedAt              DateTime
+  visibility              ActivityVisibility @default(PRIVATE)
+  createdAt               DateTime     @default(now())
+  updatedAt               DateTime     @updatedAt
+  owner                   User         @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  kudos                   Kudos[]
+  gpsRoute                GpsRoute?
+  @@index([ownerId])
+  @@index([recordedAt(sort: Desc)])
+  @@index([visibility, recordedAt(sort: Desc)])
+}
+
+model PrivacyZone {
+  id              String   @id @default(uuid())
+  ownerId         String
+  label           String
+  centerLatitude  Float
+  centerLongitude Float
+  radiusMeters    Int
+  createdAt       DateTime @default(now())
+  owner           User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  @@index([ownerId])
+}
+
+model GpsRoute {
+  id                  String   @id @default(uuid())
+  activityId          String   @unique
+  policyVersion       String
+  sourcePointCount    Int
+  acceptedPointCount  Int
+  routeDistanceMeters Int
+  points              Json
+  warnings            Json
+  createdAt           DateTime @default(now())
+  activity            Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+}
+
+model Kudos {
+  id         String   @id @default(uuid())
+  userId     String
+  activityId String
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  activity   Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  @@unique([userId, activityId], name: "oneKudosPerUserActivity")
+  @@index([activityId])
+}

@@ -1,0 +1,5 @@
+import { loginAction } from "@/app/actions/auth";
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+  const { error } = await searchParams;
+  return <main className="grid min-h-screen place-items-center bg-slate-100 p-6"><form action={loginAction} className="grid w-full max-w-md gap-4 rounded-3xl bg-white p-6 shadow-sm"><h1 className="text-3xl font-black">Log in</h1>{error ? <p role="alert" className="text-red-700">Invalid email or password.</p> : null}<input className="rounded-xl border p-3" name="email" type="email" required /><input className="rounded-xl border p-3" name="password" type="password" minLength={12} required /><button className="rounded-full bg-orange-600 p-3 font-bold text-white">Log in</button><a href="/register">Create an account</a></form></main>;
+}

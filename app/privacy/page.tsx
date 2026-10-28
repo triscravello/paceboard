@@ -1,0 +1,13 @@
+import { prisma } from "@/lib/prisma";
+import { PRIVACY_POLICY_V1 } from "@/lib/route-privacy";
+import { getCurrentViewer } from "@/lib/session";
+export default async function PrivacyPage() {
+  const viewer = await getCurrentViewer();
+  if (!viewer) return <main className="p-8"><h1>Route privacy</h1><a href="/login">Log in</a></main>;
+  const [zones, activities] = await Promise.all([prisma.privacyZone.findMany({ where: { ownerId: viewer.id }, orderBy: { createdAt: "asc" } }), prisma.activity.findMany({ where: { ownerId: viewer.id }, orderBy: { recordedAt: "desc" }, select: { id: true, title: true, visibility: true } })]);
+  return <main className="min-h-screen bg-slate-100 p-8"><div className="mx-auto max-w-4xl space-y-6"><a href="/">Back to Paceboard</a><h1 className="text-4xl font-black">Route privacy</h1>
+    <form action="/api/privacy-zones" method="post" className="grid gap-3 rounded-3xl bg-white p-5"><input type="hidden" name="action" value="create" /><input name="label" required maxLength={PRIVACY_POLICY_V1.maxLabelLength} placeholder="Label" className="border p-3" /><input name="radiusMeters" type="number" required min={PRIVACY_POLICY_V1.minRadiusMeters} max={PRIVACY_POLICY_V1.maxRadiusMeters} placeholder="Radius meters" className="border p-3" /><input name="centerLatitude" type="number" step="any" required placeholder="Latitude" className="border p-3" /><input name="centerLongitude" type="number" step="any" required placeholder="Longitude" className="border p-3" /><button className="bg-teal-700 p-3 font-bold text-white">Add zone</button></form>
+    <section className="rounded-3xl bg-white p-5"><h2 className="text-2xl font-black">Zones</h2>{zones.map((z) => <form key={z.id} action="/api/privacy-zones" method="post" className="flex justify-between border-b p-3"><span>{z.label}: {z.radiusMeters} m</span><input type="hidden" name="action" value="delete" /><input type="hidden" name="zoneId" value={z.id} /><button>Delete</button></form>)}</section>
+    <section className="rounded-3xl bg-white p-5"><h2 className="text-2xl font-black">Activities</h2>{activities.map((a) => <form key={a.id} action={`/api/activities/${a.id}/visibility`} method="post" className="flex justify-between border-b p-3"><span>{a.title}</span><span><select name="visibility" defaultValue={a.visibility}><option value="PRIVATE">Private</option><option value="PUBLIC">Public</option></select><button className="ml-3">Save</button></span></form>)}</section>
+  </div></main>;
+}
